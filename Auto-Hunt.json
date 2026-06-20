@@ -1,0 +1,3140 @@
+{
+  "name": "Auto Hunt",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://himalayas.app/jobs/api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "43c76f49-d4c6-4eaf-82d9-c8abec5dc8f6",
+      "name": "Himalaya",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        1056
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "jobs",
+        "options": {}
+      },
+      "id": "7f8994c1-437d-446f-83f4-47921fdf4cc9",
+      "name": "Split Out6",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "h1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "h2",
+              "name": "company",
+              "value": "={{ $json.companyName }}",
+              "type": "string"
+            },
+            {
+              "id": "h3",
+              "name": "apply_url",
+              "value": "={{ $json.applicationLink }}",
+              "type": "string"
+            },
+            {
+              "id": "h4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3a23472a-04c0-407d-845c-66e91bd58848",
+      "name": "Edit Fields Himalaya",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://findwork.dev/api/jobs/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Your_authentication_token_here"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5c599828-f6fb-45b9-9554-23a3bd30d290",
+      "name": "Find work",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        1472
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "results",
+        "options": {}
+      },
+      "id": "293579ee-bb25-44c6-9b94-1ff72afcf10a",
+      "name": "Split Out7",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        1472
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "title",
+              "value": "={{ $json.role }}",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "company",
+              "value": "={{ $json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "f3",
+              "name": "apply_url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "f4",
+              "name": "description",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6be9789b-50d8-4f1b-b5d8-146aaed8266b",
+      "name": "Edit Fields FindWork",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        1472
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\n// Geo-restriction patterns\nconst geoRestrictedPatterns = [\n  /\\bUS[\\s-]?only\\b/i, /\\bUSA[\\s-]?only\\b/i, /\\bUnited States[\\s-]?only\\b/i,\n  /\\bCanada[\\s-]?only\\b/i, /\\bUK[\\s-]?only\\b/i, /\\bUnited Kingdom[\\s-]?only\\b/i,\n  /\\bAustralia[\\s-]?only\\b/i, /\\bEurope[\\s-]?only\\b/i, /\\bEU[\\s-]?only\\b/i,\n  /must (be |)(based|located|residing|reside|live) in (the )?(US|USA|United States|Canada|UK|Australia|Europe|EU)\\b/i,\n  /must be eligible to work in (the )?(US|USA|United States|Canada|UK|Australia)\\b/i,\n  /right to work in (the )?(US|USA|United States|Canada|UK|Australia)\\b/i,\n  /work authorization (in|for) (the )?(US|USA|United States|Canada|UK|Australia)\\b/i,\n  /authorized to work in (the )?(US|USA|United States|Canada|UK|Australia)\\b/i,\n  /\\b(EST|CST|MST|PST|ET|CT|MT|PT)[\\s-]?(only|required|timezone)\\b/i,\n  /US (time ?zones?|hours|business hours) only/i,\n  /not available (in|for) (Saudi|Middle East|MENA|GCC)/i,\n  /exclud(es?|ing) (Saudi|Middle East|MENA|GCC)/i,\n];\n\nconst internationalSignals = [\n  'worldwide', 'global', 'international', 'anywhere in the world',\n  'work from anywhere', 'fully distributed', 'fully remote', 'all timezones',\n  'timezone flexible', 'timezone agnostic', 'location independent',\n  'emea', 'mena', 'middle east', 'saudi', 'gulf', 'apac', 'africa',\n];\n\nconst titleExclusionPatterns = [\n  /\\bsenior\\b/i, /\\bsr\\b\\.?\\s/i, /\\blead\\b/i, /\\bstaff\\b/i,\n  /\\bprincipal\\b/i, /\\bdirector\\b/i, /\\bvp\\b/i, /\\bvice president\\b/i,\n  /\\bhead of\\b/i, /\\bproduct manager\\b/i, /\\bproduct owner\\b/i,\n  /\\bproduct director\\b/i, /\\bproduct lead\\b/i, /\\bproduct designer\\b/i,\n  /\\bsales\\b/i, /\\bios developer\\b/i, /\\bproduct analyst\\b/i,\n  /\\bmarketing\\b/i, /\\bproduct specialist\\b/i, /\\bproduct strategist\\b/i,\n];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n  const title = String(job.title || '').toLowerCase();\n  const description = String(job.description || '').toLowerCase();\n  const location = String(job.location || '').toLowerCase();\n  const text = title + ' ' + description + ' ' + location;\n  const fullText = (job.title || '') + ' ' + (job.description || '') + ' ' + (job.location || '');\n\n  // Skip empty items from failed sources\n  if (!job.title || job.title.trim() === '') continue;\n\n  const isTitleExcluded = titleExclusionPatterns.some(p => p.test(job.title || ''));\n\n  const remoteTerms = ['remote', 'work from home', 'wfh', 'anywhere', 'virtual', 'distributed', 'telehealth', 'home-based'];\n  const isRemote = remoteTerms.some(t => text.includes(t));\n\n  const isGeoRestricted = geoRestrictedPatterns.some(p => p.test(fullText));\n  const hasInternationalSignal = internationalSignals.some(s => text.includes(s));\n  const passesGeoCheck = !isGeoRestricted || hasInternationalSignal;\n\n  const catA = ['ai training', 'data annotation', 'subject matter expert', 'sme', 'graphic design', 'video editor', 'medicine', 'medical expert', 'data entry', 'automation expert', 'n8n', 'ai arabic', 'prompt engineer', 'context engineer'];\n  const catB = ['virtual assistant', 'full stack', 'frontend', 'backend', 'ui / ux', 'ui/ux', 'customer service', 'customer support'];\n  let category = 'C';\n  if (catA.some(w => text.includes(w))) category = 'A';\n  else if (catB.some(w => text.includes(w))) category = 'B';\n\n  results.push({ json: {\n    title: job.title, company: job.company, apply_url: job.apply_url,\n    description: job.description, location: job.location, salary: job.salary,\n    is_remote: isRemote === true, is_geo_restricted: !passesGeoCheck,\n    is_title_excluded: isTitleExcluded, Category: category,\n  }});\n}\nreturn results;"
+      },
+      "id": "f82c1e20-c0a2-4795-b9ad-6605941c797a",
+      "name": "Classifying: remote, Category",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        1696
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter(item => {\n  const job = item.json;\n  if (!job.title || job.title.trim() === '') return false;\n  const isRemote = job.is_remote === true || job.is_remote === 'true';\n  const isGeoRestricted = job.is_geo_restricted === true || job.is_geo_restricted === 'true';\n  const isTitleExcluded = job.is_title_excluded === true || job.is_title_excluded === 'true';\n  const category = job.Category ?? 'C';\n  return isRemote && !isGeoRestricted && !isTitleExcluded && (category === 'A' || category === 'B');\n});"
+      },
+      "id": "9f2fd504-1cf5-4285-b9c2-a93d398ff56d",
+      "name": "Code in JavaScript1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        1696
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "12f81cc9-a02e-4dce-9012-51f5830f06a5",
+              "name": "formattedMessage",
+              "value": "=🌍 <b>New international remote job found</b>\n\n<b>Role:</b> {{ $('Loop Over Items1').item.json.title }}\n<b>Company:</b> {{ $('Loop Over Items1').item.json.company }}\n<b>Category:</b> {{ $('Loop Over Items1').item.json.Category }}\n<b>Location:</b> {{ $('Loop Over Items1').item.json.location || \"Worldwide\" }}\n<b>Salary:</b> {{ $('Loop Over Items1').item.json.salary || \"Not specified\" }}\n\n<b>Job Description:</b>\n<blockquote expandable>{{ $('Loop Over Items1').item.json.telegram_ready_desc }}</blockquote>\n\n<a href=\"{{ $('Loop Over Items1').item.json.apply_url }}\">🔗 Apply directly</a>\n\nInterested? <b>Get a tailored CV and Cover Letter below.</b>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e60bb830-8aaa-4e07-a6fa-066a8f7277a7",
+      "name": "Formatting",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2848,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "6c3cd834-4b0f-4fd1-ab2e-34f7a9ba3713",
+      "name": "Loop Over Items1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1600,
+        1696
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Change this number to whatever length you want (e.g., 8, 10, 12, 16)\nconst idLength = 10; \n\nconst characters = 'abcdefghijklmnopqrstuvwxyz0123456789';\nlet result = '';\n\nfor (let i = 0; i < idLength; i++) {\n  const randomIndex = Math.floor(Math.random() * characters.length);\n  result += characters[randomIndex];\n}\n\nreturn {\n  json: {\n    job_id: result\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2416,
+        1824
+      ],
+      "id": "5e0f6e73-434f-4198-a543-172ba3bcf357",
+      "name": "Generate UUID"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $json;\nlet raw = item.description || '';\n\n// 1. Convert block-level HTML to newlines\nlet clean = raw\n  .replace(/<br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/(p|div|li|tr|h[1-6])>/gi, '\\n')\n  .replace(/<(ul|ol|table)[^>]*>/gi, '\\n');\n\n// 2. Strip ALL remaining HTML tags\nclean = clean.replace(/<[^>]*>/g, '');\n\n// 3. Decode HTML entities thoroughly\nclean = clean\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/&quot;/gi, '\"')\n  .replace(/&#39;/gi, \"'\")\n  .replace(/&apos;/gi, \"'\")\n  .replace(/&#x27;/gi, \"'\")\n  .replace(/&#(\\d+);/g, (m, d) => String.fromCharCode(parseInt(d, 10)))\n  .replace(/&#x([0-9a-f]+);/gi, (m, h) => String.fromCharCode(parseInt(h, 16)))\n  .replace(/&[a-zA-Z0-9#]+;/g, ' ');\n\n// 4. Remove stray < > that Telegram rejects\nclean = clean.replace(/[<>]/g, '');\n\n// 5. Collapse whitespace\nclean = clean.replace(/[ \\t]+/g, ' ').replace(/\\n{3,}/g, '\\n\\n').trim();\n\nitem.telegram_ready_desc = clean.substring(0, 3000);\nitem.description_plain = clean.substring(0, 1500);\nreturn item;"
+      },
+      "id": "2999bb58-9fcd-45ba-ba0c-e9be3b8c986e",
+      "name": "Striping HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        1696
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "=YOUR_DEDUPLICATION_SHEET_ID_HERE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jVgoKBMAEx3y8AxF_djtUP6JIRtP128tbXFpagnNHhU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "job_id": "={{ $('Generate UUID').item.json.job_id }}",
+            "company": "={{ $('Striping HTML').item.json.company }}",
+            "job_title": "={{ $('Striping HTML').item.json.title }}",
+            "job_description": "={{ $('Striping HTML').item.json.telegram_ready_desc }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "job_id",
+              "displayName": "job_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_title",
+              "displayName": "job_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_description",
+              "displayName": "job_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2608,
+        1824
+      ],
+      "id": "59a4d1b5-43ea-42bf-890a-f897d409cc90",
+      "name": "dedup record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FMztaUHIcAj8Qcqj",
+          "name": "Google Sheet 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "=YOUR_DEDUPLICATION_SHEED_ID_HERE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "=SHEET1",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1888,
+        1712
+      ],
+      "id": "7b5478e2-3521-4d64-b7aa-cd9f23612ec2",
+      "name": "check existing",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FMztaUHIcAj8Qcqj",
+          "name": "Google Sheet 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dc8353f6-c6cf-454d-a7b6-9b6b8d6b7d66",
+              "leftValue": "={{ $('check existing').item.json.job_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2128,
+        1712
+      ],
+      "id": "d5d03c26-3008-4f88-aec8-172cada51aef",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "https://www.virtualvocations.com/jobs/rss",
+        "options": {}
+      },
+      "id": "37264440-4401-460e-afda-7ff0b0010f41",
+      "name": "Virtual Vocations",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        2032
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "viti",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "vico",
+              "name": "company",
+              "value": "={{ $json.creator || $json[\"dc:creator\"] || $json.author }}",
+              "type": "string"
+            },
+            {
+              "id": "vilo",
+              "name": "location",
+              "value": "=Remote",
+              "type": "string"
+            },
+            {
+              "id": "vide",
+              "name": "description",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "viap",
+              "name": "apply_url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "visa",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "viir",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "vica",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "c26fbc41-fb91-485b-946a-1c6dbfe68fe6",
+      "name": "Edit Fields Virtual Vocations",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        2032
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://jaabz.com/jobs/remote",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "2a22ca08-6f3b-49cc-856a-538a124490f3",
+      "name": "Jaabz",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        128,
+        3696
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Jaabz returns HTML - extract job listings with multiple strategies\nconst html = String($input.first().json.data || $input.first().json || '');\nconst jobs = [];\n\n// Strategy 1: Find job cards with title links\nconst cardPattern = /<a[^>]*href=\"(\\/[^\"]*\\/(?:job|career|position|remote)[^\"]*)\"[^>]*class=\"[^\"]*\"[^>]*>\\s*<h[2-4][^>]*>([^<]+)<\\/h[2-4]>/gi;\nlet match;\nwhile ((match = cardPattern.exec(html)) !== null) {\n  jobs.push({\n    json: {\n      title: match[2].trim(),\n      company: 'Unknown',\n      location: 'Remote',\n      description: '',\n      apply_url: 'https://jaabz.com' + match[1],\n      salary: '',\n      is_remote: 'true',\n      Category: '',\n    },\n  });\n}\n\n// Strategy 2: Try broader patterns if Strategy 1 found nothing\nif (jobs.length === 0) {\n  const linkPattern = /<a[^>]*href=\"(\\/[^\"]*\\/[^\"]*)\"[^>]*>([^<]{3,80})<\\/a>/gi;\n  while ((match = linkPattern.exec(html)) !== null) {\n    const title = match[2].replace(/<[^>]*>/g, '').trim();\n    if (title.length > 5 && !/^(home|login|register|contact|about|blog|faq|pricing|terms|privacy)$/i.test(title)) {\n      jobs.push({\n        json: {\n          title, company: 'Unknown', location: 'Remote', description: '',\n          apply_url: match[1].startsWith('/') ? 'https://jaabz.com' + match[1] : match[1],\n          salary: '', is_remote: 'true', Category: '',\n        },\n      });\n    }\n  }\n}\n\n// Strategy 3: Find any job title patterns in plain text\nif (jobs.length === 0) {\n  const text = html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n  const titlePat = /(?:senior|junior|lead|staff|principal)?\\s*(?:software|web|mobile|frontend|backend|full.?stack|devops|data|ml|ai|cloud)?\\s*(?:engineer|developer|designer|architect|manager|analyst|scientist)/gi;\n  while ((match = titlePat.exec(text)) !== null) {\n    const t = match[0].trim();\n    if (!jobs.find(j => j.json.title === t)) {\n      jobs.push({ json: { title: t, company: 'Unknown', location: 'Remote', description: '', apply_url: 'https://jaabz.com/jobs/remote', salary: '', is_remote: 'true', Category: '' } });\n    }\n  }\n}\n\nif (jobs.length === 0) {\n  return [{ json: { title: '', company: '', location: '', description: '', apply_url: '', salary: '', is_remote: 'false', Category: '' } }];\n}\nreturn jobs;"
+      },
+      "id": "e0775e4d-37a7-4827-a70d-780fc416f1cc",
+      "name": "Jaabz Code Extract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        3696
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.workingnomads.com/api/exposed_jobs/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; n8n-automation/1.0)"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "40d79c3f-07ed-44f4-b179-e8513f58f9d4",
+      "name": "Working Nomads API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        2176
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "wn1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "wn2",
+              "name": "company",
+              "value": "={{ $json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "wn3",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "wn4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "wn5",
+              "name": "apply_url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "wn6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "wn7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "wn8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "6d62b5c8-4313-420c-b74f-a8777c1b6f5f",
+      "name": "Edit Fields Working Nomads",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.realworkfromanywhere.com/rss.xml",
+        "options": {}
+      },
+      "id": "14eab43f-1737-4aee-97f8-69c90f87d848",
+      "name": "Real Work From Anywhere",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        2368
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "rw1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "rw2",
+              "name": "company",
+              "value": "={{ $json.creator || $json.author || $json[\"dc:creator\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "rw3",
+              "name": "location",
+              "value": "=Remote (Worldwide)",
+              "type": "string"
+            },
+            {
+              "id": "rw4",
+              "name": "description",
+              "value": "={{ $json.content || $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "rw5",
+              "name": "apply_url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "rw6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "rw7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "rw8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "e913fad7-2adb-4ffc-ada8-73319241ef24",
+      "name": "Edit Fields RealWorkFromAnywhere",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://weworkremotely.com/remote-jobs.rss",
+        "options": {}
+      },
+      "id": "1502b946-d4b5-455b-b24f-ec08c7596e7b",
+      "name": "We Work Remotely 2",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        2560
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "we1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "we2",
+              "name": "company",
+              "value": "={{ $json.creator || $json.author }}",
+              "type": "string"
+            },
+            {
+              "id": "we3",
+              "name": "location",
+              "value": "=Remote",
+              "type": "string"
+            },
+            {
+              "id": "we4",
+              "name": "description",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "we5",
+              "name": "apply_url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "we6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "we7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "we8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "ed45295f-5125-4372-a10d-c29294da983f",
+      "name": "Edit Fields We Work Remotely",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.arbeitnow.com/api/job-board-api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a5f08a0f-53c7-49b6-9c0d-d4fb8e49a90b",
+      "name": "Arbeitnow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        3344
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "1fb5ce10-9999-4fef-99ef-d9278cbace16",
+      "name": "Split Out Arbeitnow",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        3344
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "ab2",
+              "name": "company",
+              "value": "={{ $json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "ab3",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "ab4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "ab5",
+              "name": "apply_url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "ab6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "ab7",
+              "name": "is_remote",
+              "value": "={{ $json.remote ? \"true\" : \"false\" }}",
+              "type": "string"
+            },
+            {
+              "id": "ab8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "3aa9fff7-9392-4c43-b84b-43a42e548915",
+      "name": "Edit Fields Arbeitnow",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        3344
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://rocketjobs.pl/oferty-pracy/praca-zdalna",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; n8n-automation/1.0)"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/html"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "64773089-c520-4fab-8256-2e869e6c4fdc",
+      "name": "Rocket Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        1664
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// RocketJobs returns HTML - extract job listings from the remote jobs page\nconst html = String($input.first().json.data || $input.first().json || '');\nconst jobs = [];\n\n// Look for job offer links on rocketjobs.pl\n// Pattern: /oferta-pracy/{company}-{title}-{city}-{category}[-hash]\nconst offerPat = /href=\"(\\/oferta-pracy\\/[^\"]*)\"[^>]*>([^<]{5,150})<\\/a>/gi;\nlet match;\nwhile ((match = offerPat.exec(html)) !== null) {\n  const title = match[2].replace(/<[^>]*>/g, '').trim();\n  if (title.length > 5 && !/^(zobacz|sprawdź|czytaj|więcej|dalej|szczegóły|aplikuj|szukaj|zaloguj|rejestracja)$/i.test(title)) {\n    jobs.push({\n      json: {\n        title: title,\n        company: 'Unknown',\n        location: 'Remote (Poland)',\n        description: '',\n        apply_url: 'https://rocketjobs.pl' + match[1],\n        salary: '',\n        is_remote: 'true',\n        Category: ''\n      }\n    });\n  }\n}\n\nif (jobs.length === 0) {\n  return [{ json: { title: '', company: '', location: '', description: '', apply_url: '', salary: '', is_remote: 'false', Category: '' } }];\n}\nreturn jobs;"
+      },
+      "id": "9c319bac-7d0b-4e34-8c53-fc42ce1b6d68",
+      "name": "Rocket Jobs Code Extract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        1664
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://javascript.jobs/jobs?search=remote",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; n8n-automation/1.0)"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "ce691504-231a-4dee-aded-b52a298839d8",
+      "name": "JSRemotely",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        128,
+        1808
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// javascript.jobs returns HTML - extract job listings\nconst html = String($input.first().json.data || $input.first().json || '');\nconst jobs = [];\n\n// Look for job posting links\nconst linkPat = /<a[^>]*href=\"(\\/jobs\\/[^\"]*)\"[^>]*>([^<]{5,120})<\\/a>/gi;\nlet match;\nwhile ((match = linkPat.exec(html)) !== null) {\n  const title = match[2].replace(/<[^>]*>/g, '').trim();\n  if (title.length > 5 && !/^(sign in|login|register|home|about|blog|pricing|terms|privacy|post a job)$/i.test(title)) {\n    jobs.push({ json: {\n      title: title, company: 'Unknown', location: 'Remote',\n      description: '', apply_url: 'https://javascript.jobs' + match[1],\n      salary: '', is_remote: 'true', Category: ''\n    }});\n  }\n}\n\n// Fallback: job title patterns in text\nif (jobs.length === 0) {\n  const text = html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n  const titlePat = /(?:senior|junior|lead|staff)?\\s*(?:javascript|react|node|vue|angular|typescript|frontend|full.?stack|web)?\\s*(?:developer|engineer|designer|architect)/gi;\n  while ((match = titlePat.exec(text)) !== null) {\n    const t = match[0].trim();\n    jobs.push({ json: {\n      title: t, company: 'Unknown', location: 'Remote', description: '',\n      apply_url: 'https://javascript.jobs/jobs', salary: '', is_remote: 'true', Category: ''\n    }});\n  }\n}\n\nif (jobs.length === 0) {\n  return [{ json: { title: '', company: '', location: '', description: '', apply_url: '', salary: '', is_remote: 'false', Category: '' } }];\n}\nreturn jobs;"
+      },
+      "id": "0b80522e-b565-4312-9a65-ba7605643b29",
+      "name": "JSRemotely Code Extract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        1808
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://remotejobs.org/api/v1/jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "50"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-automation/1.0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "RemoteJobs.org",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        1264
+      ],
+      "retryOnFail": true,
+      "id": "5ae4f28d-b2bd-4c98-9ae5-94ebe1297f8f",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "b8dd1cd7-80bb-4d94-93fa-e5dfc189a326",
+      "name": "Split Out RemoteJobs.org",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "rj1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "rj2",
+              "name": "company",
+              "value": "={{ $json.company.name || $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "rj3",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "rj4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "rj5",
+              "name": "apply_url",
+              "value": "={{ $json.apply_url || $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "rj6",
+              "name": "salary",
+              "value": "={{ $json.salary_text || $json.salary || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "rj7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "rj8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "9e4b75b1-72ee-4fc0-b413-1d25625e9425",
+      "name": "Edit Fields RemoteJobs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hireweb3.io/job/rss",
+        "options": {}
+      },
+      "name": "HireWeb3",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        2752
+      ],
+      "retryOnFail": true,
+      "id": "71d98005-81e6-4c89-a769-fc3e925da8f8",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "hw1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "hw2",
+              "name": "company",
+              "value": "={{ $json.creator || $json.author }}",
+              "type": "string"
+            },
+            {
+              "id": "hw3",
+              "name": "location",
+              "value": "=Remote",
+              "type": "string"
+            },
+            {
+              "id": "hw4",
+              "name": "description",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "hw5",
+              "name": "apply_url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "hw6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "hw7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "hw8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "8581c17c-a5f5-4b94-81d5-ccd2d7e7ef18",
+      "name": "Edit Fields HireWeb3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        2752
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://himalayas.app/jobs/rss",
+        "options": {}
+      },
+      "name": "Himalayas RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        2944
+      ],
+      "retryOnFail": true,
+      "id": "d64567a0-72ee-4b50-b04e-0e753849d5db",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "hr1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "hr2",
+              "name": "company",
+              "value": "={{ $json.creator || $json.author }}",
+              "type": "string"
+            },
+            {
+              "id": "hr3",
+              "name": "location",
+              "value": "=Remote",
+              "type": "string"
+            },
+            {
+              "id": "hr4",
+              "name": "description",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "hr5",
+              "name": "apply_url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "hr6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "hr7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "hr8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "7b0407f7-003d-4c62-8384-0f8f1594dd03",
+      "name": "Edit Fields Himalayas RSS",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://jobicy.com/feed/job_feed",
+        "options": {}
+      },
+      "name": "Jobicy RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        3136
+      ],
+      "retryOnFail": true,
+      "id": "aa94512c-2bd1-4e87-9329-c10e8848cab0",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "jr1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "jr2",
+              "name": "company",
+              "value": "={{ $json.creator || $json.author }}",
+              "type": "string"
+            },
+            {
+              "id": "jr3",
+              "name": "location",
+              "value": "=Remote",
+              "type": "string"
+            },
+            {
+              "id": "jr4",
+              "name": "description",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "jr5",
+              "name": "apply_url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "jr6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "jr7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "jr8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "87f3af32-1d4e-4d94-b549-a50fcd88e982",
+      "name": "Edit Fields Jobicy RSS",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=remote+contractor&f_TP=1&location=Worldwide",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "name": "LinkedIn Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        3536
+      ],
+      "retryOnFail": true,
+      "id": "fac5681d-ab12-482f-8344-908807d261d4",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// LinkedIn Guest API returns HTML with job cards\nconst html = String($input.first().json.data || $input.first().json || '');\nconst jobs = [];\n\n// LinkedIn job cards are <li> elements with class containing \"job\"\nconst cardRegex = /<li[^>]*class=\"[^\"]*job[^\"]*\"[^>]*>[\\s\\S]*?<\\/li>/gi;\nconst cards = html.match(cardRegex) || [];\n\nfor (const card of cards) {\n  // Extract title\n  const titleMatch = card.match(/class=\"[^\"]*title[^\"]*\"[^>]*>([^<]+)</i) ||\n                     card.match(/<h3[^>]*>([^<]+)<\\/h3>/i) ||\n                     card.match(/<a[^>]*class=\"[^\"]*job-title[^\"]*\"[^>]*>([^<]+)</i);\n  // Extract company\n  const companyMatch = card.match(/class=\"[^\"]*company[^\"]*\"[^>]*>([^<]+)</i) ||\n                       card.match(/class=\"[^\"]*subtitle[^\"]*\"[^>]*>([^<]+)</i);\n  // Extract location\n  const locMatch = card.match(/class=\"[^\"]*location[^\"]*\"[^>]*>([^<]+)</i);\n  // Extract link\n  const linkMatch = card.match(/href=\"(\\/jobs\\/[^\"]*\\?[^\"]*)\"/i) ||\n                    card.match(/data-job-url=\"([^\"]*)\"/i);\n\n  if (titleMatch) {\n    const title = titleMatch[1].replace(/<[^>]*>/g, '').trim();\n    jobs.push({ json: {\n      title: title,\n      company: companyMatch ? companyMatch[1].replace(/<[^>]*>/g, '').trim() : 'Unknown',\n      location: locMatch ? locMatch[1].replace(/<[^>]*>/g, '').trim() : 'Remote',\n      description: '',\n      apply_url: linkMatch ? (linkMatch[1].startsWith('http') ? linkMatch[1] : 'https://www.linkedin.com' + linkMatch[1]) : 'https://www.linkedin.com/jobs/',\n      salary: '',\n      is_remote: 'true',\n      Category: '',\n    }});\n  }\n}\n\n// Fallback: broader link matching\nif (jobs.length === 0) {\n  const linkPat = /href=\"(\\/jobs\\/view\\/[^\"]*)\"[^>]*>([^<]{5,120})<\\/a>/gi;\n  let match;\n  while ((match = linkPat.exec(html)) !== null) {\n    jobs.push({ json: {\n      title: match[2].replace(/<[^>]*>/g, '').trim(),\n      company: 'Unknown', location: 'Remote', description: '',\n      apply_url: 'https://www.linkedin.com' + match[1],\n      salary: '', is_remote: 'true', Category: '',\n    }});\n  }\n}\n\nif (jobs.length === 0) {\n  return [{ json: { title: '', company: '', location: '', description: '', apply_url: '', salary: '', is_remote: 'false', Category: '' } }];\n}\nreturn jobs;"
+      },
+      "id": "72774f65-5895-4626-9161-197b6972f9f9",
+      "name": "LinkedIn Code Extract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        3536
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1",
+              "name": "title",
+              "value": "={{ $json.title.split(': ')[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "d2",
+              "name": "company",
+              "value": "={{ $json.title.split(': ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "d3",
+              "name": "location",
+              "value": "=Remote",
+              "type": "string"
+            },
+            {
+              "id": "d4",
+              "name": "description",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "d5",
+              "name": "apply_url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "d6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "d7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "d8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "f50f2dc0-47e4-4e32-814c-4e5d2e84086f",
+      "name": "Edit Fields3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://weworkremotely.com/remote-jobs.rss",
+        "options": {
+          "customFields": ""
+        }
+      },
+      "id": "746276c2-5495-4f1e-b354-e5c3a004d470",
+      "name": "WWR",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        864
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "b2",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "b3",
+              "name": "location",
+              "value": "={{ $json.location.area[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "b4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "b5",
+              "name": "apply_url",
+              "value": "={{ $json.redirect_url }}",
+              "type": "string"
+            },
+            {
+              "id": "b6",
+              "name": "salary",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "b7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "b8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "fc79cd81-f480-4a2b-a148-cc31872dca35",
+      "name": "Edit Fields1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "results",
+        "options": {}
+      },
+      "id": "51c998c5-0029-4796-b9cb-80bb6086cc08",
+      "name": "Split Out3",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.adzuna.com/v1/api/jobs/gb/search/1",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "app_id",
+              "value": "Your_app_ID_here"
+            },
+            {
+              "name": "app_key",
+              "value": "Your_app_Key_here"
+            },
+            {
+              "name": "what",
+              "value": "remote contractor"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d1b35c20-6ba3-4feb-93b6-7f27cf232a6e",
+      "name": "adzuna",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        656
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "c2",
+              "name": "company",
+              "value": "={{ $json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "c3",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "c4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "c5",
+              "name": "apply_url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "c6",
+              "name": "salary",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "c7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "c8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "bff6c6c7-3063-4293-9584-abe697ec5a39",
+      "name": "Edit Fields2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "jobs",
+        "options": {}
+      },
+      "id": "66b0179d-3060-4e16-9e3a-9a9b8a826185",
+      "name": "Split Out4",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://jobicy.com/api/v2/remote-jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "count",
+              "value": "50"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6686be33-6bbd-43d5-a5be-9e0cbfe77fda",
+      "name": "Jobicy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        464
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1",
+              "name": "title",
+              "value": "={{ $json.job_title }}",
+              "type": "string"
+            },
+            {
+              "id": "e2",
+              "name": "company",
+              "value": "={{ $json.employer_name }}",
+              "type": "string"
+            },
+            {
+              "id": "e3",
+              "name": "location",
+              "value": "={{ $json.job_country }}",
+              "type": "string"
+            },
+            {
+              "id": "e4",
+              "name": "description",
+              "value": "={{ $json.job_description }}",
+              "type": "string"
+            },
+            {
+              "id": "e5",
+              "name": "apply_url",
+              "value": "={{ $json.apply_options[1].apply_link }}",
+              "type": "string"
+            },
+            {
+              "id": "e6",
+              "name": "salary",
+              "value": "={{ $json.job_salary }}",
+              "type": "string"
+            },
+            {
+              "id": "e7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "e8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "a644c2cc-537b-4779-b625-0cf13910595f",
+      "name": "Edit Fields5",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "10e68300-6cf6-46a0-9400-0145407655dc",
+      "name": "Split Out2",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://jsearch.p.rapidapi.com/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "remote contractor (EMEA OR Gulf OR \"Saudi Arabia\" OR \"Middle East\" OR Europe)"
+            },
+            {
+              "name": "remote_jobs_only",
+              "value": "true"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "Your_rapidapi_Key_here"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "jsearch.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "df0efd3c-cf70-4895-acc3-6f0de2abfdc0",
+      "name": "Jsearch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        240
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "company",
+              "value": "={{ $json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "location",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "apply_url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "salary",
+              "value": "={{ $json.salary }}",
+              "type": "string"
+            },
+            {
+              "id": "a7",
+              "name": "is_remote",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "a8",
+              "name": "Category",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "71f0edc8-522c-44ad-aebe-b180cf576836",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "jobs",
+        "options": {}
+      },
+      "id": "2eb3e1cd-8be0-49bb-a2b1-875efd6a8405",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://remotive.com/api/remote-jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "category"
+            },
+            {
+              "name": "limit",
+              "value": "10"
+            },
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "10b074a2-1489-46f1-ac96-75789f25f957",
+      "name": "remotive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        48,
+        48
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "numberInputs": 10
+      },
+      "id": "5dc83391-669a-4f45-ad5d-64f2e366fe57",
+      "name": "Merge1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1072,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 10
+      },
+      "id": "ff9d17de-3572-4aff-b150-aa75ea2353c4",
+      "name": "Merge3",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1040,
+        2768
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -896,
+        2832
+      ],
+      "id": "ff4e73c3-2cdf-4edd-8459-5aa179f8b633",
+      "name": "Schedule Trigger2"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -880,
+        896
+      ],
+      "id": "5c6029da-0995-409e-a3a1-52cc9c8cb44a",
+      "name": "Schedule Trigger3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2416,
+        1600
+      ],
+      "id": "e6313220-5485-4634-b70d-ad6e492f68c8",
+      "name": "To avoid Google Sheets rate limits",
+      "webhookId": "9162dfb0-a480-4492-a570-217d8c57b09b"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "id": "d1658ea4-6cc4-4d77-bf46-9fd5b83a9290",
+      "name": "To avoid Telegram rate limits",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3280,
+        1824
+      ],
+      "webhookId": "893db917-4a5d-47bc-bcba-258e90573ec7"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID_HERE",
+        "text": "={{ $json.formattedMessage }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Applied !",
+                    "additionalFields": {
+                      "callback_data": "=apply|{{ $('Generate UUID').item.json.job_id }}"
+                    }
+                  },
+                  {
+                    "text": "Get CV and CL",
+                    "additionalFields": {
+                      "callback_data": "=cvcl|{{ $('Generate UUID').item.json.job_id }}"
+                    }
+                  },
+                  {
+                    "text": "Delete",
+                    "additionalFields": {
+                      "callback_data": "=delete|{{ $('Generate UUID').item.json.job_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "d2032bae-f5a8-42e1-9e36-35d898b2308f",
+      "name": "Send to Telegram Channel / Chat",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3072,
+        1824
+      ],
+      "webhookId": "3d0ae8cd-1674-4a83-b2d4-811809c542c2",
+      "credentials": {
+        "telegramApi": {
+          "id": "BcDcvWyInDRRwGoY",
+          "name": "Notifier"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 704,
+        "width": 2720,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        864,
+        1408
+      ],
+      "typeVersion": 1,
+      "id": "924b87e8-201c-4023-b4ca-7189c1f25f88",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 4144,
+        "width": 992,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "ed4100c4-1e45-4835-bed9-072846230720",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 368,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        2784
+      ],
+      "typeVersion": 1,
+      "id": "c18d0819-0a58-4c66-80d2-61d94aa57044",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 480,
+        "width": 352,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        992,
+        1520
+      ],
+      "typeVersion": 1,
+      "id": "85e81837-52e7-4117-952c-bf8c0f309cec",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 480,
+        "width": 1232,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1520,
+        1520
+      ],
+      "typeVersion": 1,
+      "id": "94a01448-839a-4f94-9df0-4d116eb18370",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 480,
+        "width": 672,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2784,
+        1520
+      ],
+      "typeVersion": 1,
+      "id": "8e14dcda-10e5-4e80-b026-ee74e3aed717",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# Formatting and sending one by one",
+        "height": 96,
+        "width": 416,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2928,
+        1584
+      ],
+      "typeVersion": 1,
+      "id": "14ac2249-a31b-460a-aebb-a4f9ad2b8102",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "# Deduplicaton",
+        "height": 96,
+        "width": 176,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2048,
+        1568
+      ],
+      "typeVersion": 1,
+      "id": "1722862d-d86e-407c-b57a-c3fe6c6f6c0f",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "# Categorization",
+        "height": 96,
+        "width": 176,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        1552
+      ],
+      "typeVersion": 1,
+      "id": "b43a9e58-c409-4140-84df-8efbd5f1b06b",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "## 🔑  Requires API Key",
+        "height": 96,
+        "width": 1056
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        1472
+      ],
+      "typeVersion": 1,
+      "id": "a543267e-316b-4eb9-a307-c9d3e5f61af1",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "## 🔑  Requires API Key",
+        "height": 96,
+        "width": 1056
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "996a92cb-c9b4-4cc7-842c-564de49c211c",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 368,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        848
+      ],
+      "typeVersion": 1,
+      "id": "aedc5b9c-bdf3-4d55-b7e4-94f63bebbf04",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 🔑  Requires API Key",
+        "height": 96,
+        "width": 1056
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "a90e3d66-3044-45ef-98f8-0eea20bb3812",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "![Auto-Hunt](https://www.kawtheron.tech/github/autohunt_banner.png)\n\n### 🎯 What this does\nPulls remote jobs from 15+ sources, dedupes against Google Sheets, and notifies you on Telegram.\n\n**Sources:** Himalayas · FindWork · Adzuna · RemoteJobs.org · LinkedIn · JSearch · Remotive · +8 more\n\n| Stage | Node group |\n|---|---|\n| 🔍 Fetch | HTTP/RSS nodes (top row) |\n| 🧹 Normalize | Set + Code nodes |\n| 🚫 Dedupe | Google Sheets check |\n| 📬 Notify | Telegram |",
+        "height": 784,
+        "width": 1328,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1568,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "39567229-0cff-4be5-8dd5-60538c6fd8f3",
+      "name": "Sticky Note13"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Himalaya": {
+      "main": [
+        [
+          {
+            "node": "Split Out6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out6": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Himalaya",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Himalaya": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Find work": {
+      "main": [
+        [
+          {
+            "node": "Split Out7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out7": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields FindWork",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields FindWork": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 7
+          }
+        ]
+      ]
+    },
+    "Classifying: remote, Category": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Striping HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatting": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram Channel / Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "check existing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate UUID": {
+      "main": [
+        [
+          {
+            "node": "dedup record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Striping HTML": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "dedup record": {
+      "main": [
+        [
+          {
+            "node": "Formatting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check existing": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "To avoid Google Sheets rate limits",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate UUID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Virtual Vocations": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Virtual Vocations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Virtual Vocations": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jaabz": {
+      "main": [
+        [
+          {
+            "node": "Jaabz Code Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jaabz Code Extract": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 9
+          }
+        ]
+      ]
+    },
+    "Working Nomads API": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Working Nomads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Working Nomads": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Real Work From Anywhere": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields RealWorkFromAnywhere",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields RealWorkFromAnywhere": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "We Work Remotely 2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields We Work Remotely",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields We Work Remotely": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Arbeitnow": {
+      "main": [
+        [
+          {
+            "node": "Split Out Arbeitnow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Arbeitnow": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Arbeitnow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Arbeitnow": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 7
+          }
+        ]
+      ]
+    },
+    "Rocket Jobs": {
+      "main": [
+        [
+          {
+            "node": "Rocket Jobs Code Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rocket Jobs Code Extract": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 8
+          }
+        ]
+      ]
+    },
+    "JSRemotely": {
+      "main": [
+        [
+          {
+            "node": "JSRemotely Code Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSRemotely Code Extract": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 9
+          }
+        ]
+      ]
+    },
+    "RemoteJobs.org": {
+      "main": [
+        [
+          {
+            "node": "Split Out RemoteJobs.org",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out RemoteJobs.org": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields RemoteJobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields RemoteJobs": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "HireWeb3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields HireWeb3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields HireWeb3": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Himalayas RSS": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Himalayas RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Himalayas RSS": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Jobicy RSS": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Jobicy RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Jobicy RSS": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "LinkedIn Jobs": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn Code Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Code Extract": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 8
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "WWR": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Split Out3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "adzuna": {
+      "main": [
+        [
+          {
+            "node": "Split Out3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Split Out4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jobicy": {
+      "main": [
+        [
+          {
+            "node": "Split Out4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jsearch": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "remotive": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger2": {
+      "main": [
+        [
+          {
+            "node": "Himalayas RSS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HireWeb3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "We Work Remotely 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Real Work From Anywhere",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Working Nomads API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Virtual Vocations",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Jobicy RSS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Arbeitnow",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LinkedIn Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Jaabz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Classifying: remote, Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger3": {
+      "main": [
+        [
+          {
+            "node": "remotive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Jsearch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Jobicy",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "adzuna",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "WWR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Himalaya",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RemoteJobs.org",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find work",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Rocket Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JSRemotely",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Classifying: remote, Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To avoid Google Sheets rate limits": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To avoid Telegram rate limits": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Telegram Channel / Chat": {
+      "main": [
+        [
+          {
+            "node": "To avoid Telegram rate limits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "55ef4df5-4fa2-4e4d-aadc-751fb6c1d5da",
+  "meta": {
+    "instanceId": "973b5b3d349bb73f757182dbd0b1c10add9b0ad45138e0a1425bad81b9f65e57"
+  },
+  "nodeGroups": [],
+  "id": "E5gxoyOtV1ActEPh",
+  "tags": [
+    {
+      "updatedAt": "2026-04-21T15:22:12.632Z",
+      "createdAt": "2026-04-21T15:22:12.632Z",
+      "id": "GrK6foYS5KA6chy0",
+      "name": "Mojtaba"
+    }
+  ]
+}
