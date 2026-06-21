@@ -6,7 +6,7 @@ Auto-Hunt is a pair of n8n workflows that automatically search 20  remote-job so
 
 ### 1. `Auto-Hunt.json` — Job Aggregator
 On a schedule, this workflow:
-- Pulls listings from ~15 sources in parallel: Himalayas, FindWork, Working Nomads, Arbeitnow, Rocket Jobs, JSRemotely, RemoteJobs.org, LinkedIn Jobs (guest API), Adzuna, Jobicy, JSearch (RapidAPI), Remotive, Virtual Vocations, Real Work From Anywhere, We Work Remotely, HireWeb3
+- Pulls listings from ~20 sources in parallel: Himalayas, FindWork, Working Nomads, Arbeitnow, Rocket Jobs, JSRemotely, RemoteJobs.org, LinkedIn Jobs (guest API), Adzuna, Jobicy, JSearch (RapidAPI), Remotive, Virtual Vocations, Real Work From Anywhere, We Work Remotely, HireWeb3
 - Normalizes each source's fields into a common schema
 - Strips HTML from descriptions
 - Classifies postings (e.g. remote-ness, category) via a Code node
